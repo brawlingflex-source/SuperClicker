@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SuperClicker</title>
+    <title>Кликер Монетка</title>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -277,7 +277,6 @@
             transform: scale(0.95);
         }
 
-        /* Реалистичная иконка Telegram */
         .telegram-icon {
             width: 44px;
             height: 44px;
@@ -291,7 +290,6 @@
             position: relative;
         }
 
-        /* Белая окружность внутри */
         .telegram-icon::before {
             content: '';
             position: absolute;
@@ -302,7 +300,6 @@
             border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* Логотип Telegram (белый самолетик) */
         .telegram-icon::after {
             content: '✈️';
             position: absolute;
@@ -312,42 +309,6 @@
             transform: rotate(45deg);
             filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
             z-index: 2;
-        }
-
-        /* Альтернативный вариант с SVG-подобным самолетиком */
-        .telegram-logo {
-            position: absolute;
-            width: 22px;
-            height: 22px;
-            background: white;
-            border-radius: 2px;
-            transform: rotate(45deg);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 3;
-        }
-
-        .telegram-logo::before {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            background: white;
-            border-radius: 2px;
-            top: -8px;
-            left: 4px;
-            transform: rotate(45deg);
-        }
-
-        .telegram-logo::after {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            background: white;
-            border-radius: 2px;
-            bottom: -8px;
-            right: 4px;
-            transform: rotate(45deg);
         }
 
         .developer-text {
@@ -569,7 +530,7 @@
             cursor: not-allowed;
         }
 
-        /* МОДАЛКА ЧАТА */
+        /* МОДАЛКА ЧАТА - ИСПРАВЛЕННАЯ */
         .chat-modal {
             position: fixed;
             top: 0;
@@ -586,7 +547,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
+            padding: 16px 20px;
             background: #0a0a0a;
             border-bottom: 2px solid gold;
         }
@@ -617,6 +578,16 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            /* Сообщения идут сверху вниз, новые снизу */
+            justify-content: flex-end;
+        }
+
+        /* Контейнер для сообщений, чтобы новые были снизу */
+        .messages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
         }
 
         .chat-message {
@@ -626,6 +597,18 @@
             max-width: 85%;
             word-break: break-word;
             border-left: 5px solid gold;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        @keyframes messageAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .chat-message.own {
@@ -686,6 +669,7 @@
             align-items: center;
             cursor: pointer;
             font-weight: bold;
+            transition: 0.2s;
         }
 
         .chat-send-btn:active {
@@ -786,6 +770,29 @@
             color: gold;
             font-size: 16px;
         }
+
+        /* Индикатор новых сообщений */
+        .new-message-indicator {
+            position: absolute;
+            bottom: 100px;
+            right: 30px;
+            background: gold;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+            cursor: pointer;
+            z-index: 250;
+            display: none;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
     </style>
 </head>
 <body>
@@ -866,14 +873,14 @@
         </div>
     </div>
 
-    <!-- Модалка Чата -->
+    <!-- МОДАЛКА ЧАТА - ИСПРАВЛЕННАЯ -->
     <div class="chat-modal" id="chatModal">
         <div class="chat-header">
             <h3>💬 Общий чат</h3>
             <button class="chat-close" id="closeChatBtn">×</button>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <!-- Сообщения будут здесь -->
+            <!-- Сообщения будут загружаться сюда -->
         </div>
         <div class="chat-input-container">
             <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение..." maxlength="200">
@@ -910,9 +917,11 @@
         let currentUser = null;
         let currentUsername = '';
         let userBalance = 0;
-        let userUpgrades = [0, 0, 0, 0, 0]; // Количество каждого улучшения
-        let clickMultiplier = 1; // Базовый множитель
+        let userUpgrades = [0, 0, 0, 0, 0];
+        let clickMultiplier = 1;
         let isUpdating = false;
+        let isUserScrolling = false;
+        let scrollTimeout;
         
         // DOM элементы
         const nameScreen = document.getElementById('nameScreen');
@@ -997,7 +1006,7 @@
 
         // Обновление множителя клика
         function updateClickMultiplier() {
-            let totalBonus = 1; // Базовый 1 за клик
+            let totalBonus = 1;
             userUpgrades.forEach((count, index) => {
                 totalBonus += count * UPGRADES[index].bonus;
             });
@@ -1007,7 +1016,6 @@
                 clickStatsDisplay.innerHTML = `⚡ +${clickMultiplier} за клик`;
             }
             
-            // Обновляем бейдж
             const totalUpgrades = userUpgrades.reduce((a, b) => a + b, 0);
             upgradeBadge.textContent = totalUpgrades;
         }
@@ -1015,7 +1023,6 @@
         // Расчет цены улучшения
         function getUpgradePrice(upgradeId, currentLevel) {
             const upgrade = UPGRADES[upgradeId];
-            // Увеличиваем цену на 35% за каждую покупку любого улучшения
             const totalPurchases = userUpgrades.reduce((a, b) => a + b, 0);
             const price = Math.floor(upgrade.basePrice * Math.pow(1.35, totalPurchases));
             return price;
@@ -1052,7 +1059,6 @@
             
             shopContainer.innerHTML = html;
             
-            // Добавляем обработчики покупки
             document.querySelectorAll('.buy-btn').forEach(btn => {
                 btn.addEventListener('click', async function() {
                     const upgradeId = parseInt(this.dataset.upgrade);
@@ -1067,32 +1073,21 @@
             
             const price = getUpgradePrice(upgradeId, userUpgrades[upgradeId]);
             
-            if (userBalance < price) {
-                return;
-            }
+            if (userBalance < price) return;
             
             isUpdating = true;
             
             try {
-                // Списываем деньги
                 userBalance -= price;
-                
-                // Увеличиваем уровень улучшения
                 userUpgrades[upgradeId] = (userUpgrades[upgradeId] || 0) + 1;
-                
-                // Обновляем множитель
                 updateClickMultiplier();
                 
-                // Сохраняем в Firebase
                 await database.ref('users/' + currentUsername).update({
                     clicks: userBalance,
                     upgrades: userUpgrades
                 });
                 
-                // Обновляем UI
                 balanceDisplay.textContent = `Баланс: ${userBalance}`;
-                
-                // Перезагружаем магазин
                 loadShop();
                 
             } catch (error) {
@@ -1106,17 +1101,102 @@
 
         // Анимация клика
         function clickAnimation(e) {
-            // Анимация монетки
             coin.classList.add('click-effect');
             setTimeout(() => {
                 coin.classList.remove('click-effect');
             }, 150);
             
-            // Создаем частицы
             const rect = coin.getBoundingClientRect();
             const x = rect.left + rect.width / 2;
             const y = rect.top + rect.height / 2;
             createParticles(x, y);
+        }
+
+        // Функция скролла чата вниз
+        function scrollChatToBottom() {
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        // ОТПРАВКА СООБЩЕНИЯ - ИСПРАВЛЕНО
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text || !currentUsername) return;
+
+            try {
+                await database.ref('chat').push({
+                    username: currentUsername,
+                    text: text,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                chatInput.value = '';
+                
+                // Скроллим вниз после отправки
+                setTimeout(scrollChatToBottom, 100);
+            } catch (error) {
+                console.error('Chat error:', error);
+            }
+        }
+
+        sendMessageBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // ЗАГРУЗКА СООБЩЕНИЙ ЧАТА - ИСПРАВЛЕНО (новые сообщения снизу)
+        function loadChatMessages() {
+            database.ref('chat')
+                .orderByChild('timestamp')
+                .limitToLast(50)
+                .on('value', (snapshot) => {
+                    
+                    chatMessages.innerHTML = '';
+                    
+                    if (!snapshot.exists()) {
+                        chatMessages.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">💭 Пока нет сообщений</div>';
+                        return;
+                    }
+
+                    const messages = [];
+                    snapshot.forEach((child) => {
+                        messages.push(child.val());
+                    });
+
+                    // Отображаем сообщения в хронологическом порядке (сверху старые, снизу новые)
+                    messages.forEach((msg) => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `chat-message ${msg.username === currentUsername ? 'own' : ''}`;
+                        
+                        const time = new Date(msg.timestamp || Date.now());
+                        const timeStr = `${time.getHours().toString().padStart(2,'0')}:${time.getMinutes().toString().padStart(2,'0')}`;
+                        
+                        messageDiv.innerHTML = `
+                            <div class="message-author">${msg.username}</div>
+                            <div class="message-text">${escapeHTML(msg.text)}</div>
+                            <div class="message-time">${timeStr}</div>
+                        `;
+                        
+                        chatMessages.appendChild(messageDiv);
+                    });
+
+                    // ВСЕГДА скроллим вниз к последнему сообщению
+                    setTimeout(scrollChatToBottom, 50);
+                });
+        }
+
+        // Защита от XSS
+        function escapeHTML(text) {
+            return text.replace(/[&<>"]/g, function(c) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;'
+                }[c];
+            });
         }
 
         // Автоматический вход при загрузке
@@ -1191,13 +1271,14 @@
             }
         });
 
-        // Чат - открыть
+        // Чат - открыть (с автоскроллом)
         chatIcon.addEventListener('click', function() {
             if (currentUsername) {
                 chatModal.style.display = 'flex';
                 loadChatMessages();
                 setTimeout(() => {
                     chatInput.focus();
+                    scrollChatToBottom();
                 }, 300);
             }
         });
@@ -1205,78 +1286,8 @@
         // Чат - закрыть
         closeChatBtn.addEventListener('click', function() {
             chatModal.style.display = 'none';
+            database.ref('chat').off(); // Отключаем слушатель чата
         });
-
-        // Отправка сообщения
-        async function sendMessage() {
-            const text = chatInput.value.trim();
-            if (!text || !currentUsername) return;
-
-            try {
-                await database.ref('chat').push({
-                    username: currentUsername,
-                    text: text,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                });
-                chatInput.value = '';
-            } catch (error) {
-                console.error('Chat error:', error);
-            }
-        }
-
-        sendMessageBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        // Загрузка сообщений чата
-        function loadChatMessages() {
-            database.ref('chat').orderByChild('timestamp').limitToLast(50).on('value', (snapshot) => {
-                chatMessages.innerHTML = '';
-                
-                if (!snapshot.exists()) {
-                    chatMessages.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">💭 Пока нет сообщений</div>';
-                    return;
-                }
-
-                const messages = [];
-                snapshot.forEach((child) => {
-                    messages.push(child.val());
-                });
-
-                messages.reverse().forEach((msg) => {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `chat-message ${msg.username === currentUsername ? 'own' : ''}`;
-                    
-                    const time = new Date(msg.timestamp || Date.now());
-                    const timeStr = `${time.getHours().toString().padStart(2,'0')}:${time.getMinutes().toString().padStart(2,'0')}`;
-                    
-                    messageDiv.innerHTML = `
-                        <div class="message-author">${msg.username}</div>
-                        <div class="message-text">${escapeHTML(msg.text)}</div>
-                        <div class="message-time">${timeStr}</div>
-                    `;
-                    
-                    chatMessages.appendChild(messageDiv);
-                });
-
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            });
-        }
-
-        // Защита от XSS
-        function escapeHTML(text) {
-            return text.replace(/[&<>"]/g, function(c) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;'
-                }[c];
-            });
-        }
 
         // Старт игры
         startBtn.addEventListener('click', async function() {
@@ -1371,7 +1382,6 @@
         coin.addEventListener('click', async function(e) {
             if (!currentUsername) return;
             
-            // Анимация
             clickAnimation(e);
             
             isUpdating = true;
@@ -1493,6 +1503,7 @@
         chatModal.addEventListener('click', function(e) {
             if (e.target === chatModal) {
                 chatModal.style.display = 'none';
+                database.ref('chat').off();
             }
         });
 
