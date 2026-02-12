@@ -35,6 +35,7 @@
             position: relative;
         }
 
+        /* ЭКРАН ВВОДА ИМЕНИ */
         .name-screen {
             position: absolute;
             top: 0;
@@ -100,6 +101,7 @@
             transform: none;
         }
 
+        /* ОСНОВНОЙ ЭКРАН ИГРЫ */
         .game-screen {
             display: none;
             flex-direction: column;
@@ -109,6 +111,7 @@
             padding: 16px;
         }
 
+        /* Верхняя панель */
         .top-panel {
             display: flex;
             justify-content: space-between;
@@ -146,6 +149,7 @@
             background: #27ae60;
         }
 
+        /* Панель с магазином */
         .shop-panel {
             display: flex;
             justify-content: flex-start;
@@ -179,6 +183,7 @@
             font-size: 28px;
         }
 
+        /* Количество улучшений */
         .upgrade-badge {
             position: absolute;
             top: -5px;
@@ -196,6 +201,7 @@
             border: 2px solid white;
         }
 
+        /* Монетка */
         .coin-container {
             flex: 1;
             display: flex;
@@ -249,6 +255,7 @@
             50% { transform: translateY(-15px); }
         }
 
+        /* Telegram блок - реалистичная иконка */
         .telegram-block {
             display: flex;
             align-items: center;
@@ -327,6 +334,7 @@
             }
         }
 
+        /* Контейнер для частиц */
         .particles-container {
             position: absolute;
             top: 0;
@@ -357,6 +365,7 @@
             }
         }
 
+        /* Иконка чата */
         .chat-icon {
             position: fixed;
             bottom: 20px;
@@ -383,6 +392,7 @@
             font-size: 35px;
         }
 
+        /* МОДАЛКА ТОПА */
         .modal, .shop-modal {
             position: fixed;
             top: 0;
@@ -438,6 +448,7 @@
             align-items: center;
         }
 
+        /* Стили для магазина */
         .upgrade-item {
             background: #1a1a1a;
             border-radius: 20px;
@@ -519,6 +530,7 @@
             cursor: not-allowed;
         }
 
+        /* МОДАЛКА ЧАТА - ИСПРАВЛЕННАЯ */
         .chat-modal {
             position: fixed;
             top: 0;
@@ -566,7 +578,16 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            /* Сообщения идут сверху вниз, новые снизу */
             justify-content: flex-end;
+        }
+
+        /* Контейнер для сообщений, чтобы новые были снизу */
+        .messages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
         }
 
         .chat-message {
@@ -669,17 +690,6 @@
             background: #1a1a1a;
             border-radius: 20px;
             border-left: 6px solid gold;
-            transition: 0.2s;
-            cursor: pointer;
-        }
-
-        .top-item:hover {
-            background: #2a2a2a;
-        }
-
-        .top-item.admin-item {
-            border-left: 6px solid #ff4444;
-            background: #331a1a;
         }
 
         .top-item.you {
@@ -703,16 +713,6 @@
         .clicks-top {
             font-weight: bold;
             color: #2ecc71;
-        }
-
-        .admin-badge {
-            background: #ff4444;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            margin-left: 8px;
-            font-weight: bold;
         }
 
         .user-info {
@@ -771,91 +771,33 @@
             font-size: 16px;
         }
 
-        .delete-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
+        /* Индикатор новых сообщений */
+        .new-message-indicator {
+            position: absolute;
+            bottom: 100px;
+            right: 30px;
+            background: gold;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+            cursor: pointer;
+            z-index: 250;
             display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 300;
-            backdrop-filter: blur(5px);
+            animation: bounce 1s ease-in-out infinite;
         }
 
-        .delete-content {
-            background: #0a0a0a;
-            width: 90%;
-            max-width: 340px;
-            border-radius: 30px;
-            padding: 30px 20px;
-            border: 2px solid #ff4444;
-            color: white;
-            position: relative;
-            text-align: center;
-        }
-
-        .delete-content h3 {
-            color: #ff4444;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-
-        .delete-content p {
-            color: white;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .delete-username {
-            color: #ff4444;
-            font-weight: bold;
-            font-size: 22px;
-            margin: 15px 0;
-            padding: 10px;
-            background: #1a1a1a;
-            border-radius: 20px;
-        }
-
-        .delete-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        .delete-confirm {
-            flex: 1;
-            background: #ff4444;
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .delete-cancel {
-            flex: 1;
-            background: #333;
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .delete-confirm:active, .delete-cancel:active {
-            transform: scale(0.95);
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
     </style>
 </head>
 <body>
     <div class="app" id="app">
+        <!-- Экран ввода имени -->
         <div class="name-screen" id="nameScreen">
             <h2>💰 КЛИКЕР</h2>
             <input type="text" class="name-input" id="usernameInput" placeholder="Введите ваше имя" maxlength="20" autocomplete="off">
@@ -863,6 +805,7 @@
             <div id="nameError" class="error-message"></div>
         </div>
 
+        <!-- Основной экран игры -->
         <div class="game-screen" id="gameScreen">
             <div class="top-panel">
                 <div class="balance" id="balanceDisplay">Баланс: 0</div>
@@ -882,6 +825,7 @@
                         <span>💰</span>
                     </div>
                     
+                    <!-- Telegram блок с реалистичной иконкой -->
                     <div class="telegram-block" id="telegramBlock">
                         <div class="telegram-icon"></div>
                         <span class="developer-text">Разработчик: @W3030q0</span>
@@ -896,11 +840,13 @@
             </div>
         </div>
 
+        <!-- Иконка чата -->
         <div class="chat-icon" id="chatIcon">
             <span>💬</span>
         </div>
     </div>
 
+    <!-- Модалка Топа -->
     <div class="modal" id="topModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -914,43 +860,36 @@
         </div>
     </div>
 
+    <!-- Модалка Магазина -->
     <div class="shop-modal" id="shopModal">
         <div class="shop-content">
             <div class="shop-header">
                 <h3>🛒 Магазин улучшений</h3>
                 <button class="shop-close-btn" id="closeShopBtn">×</button>
             </div>
-            <div id="shopContainer"></div>
+            <div id="shopContainer">
+                <!-- Улучшения будут загружены через JS -->
+            </div>
         </div>
     </div>
 
+    <!-- МОДАЛКА ЧАТА - ИСПРАВЛЕННАЯ -->
     <div class="chat-modal" id="chatModal">
         <div class="chat-header">
             <h3>💬 Общий чат</h3>
             <button class="chat-close" id="closeChatBtn">×</button>
         </div>
-        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Сообщения будут загружаться сюда -->
+        </div>
         <div class="chat-input-container">
             <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение..." maxlength="200">
             <button class="chat-send-btn" id="sendMessageBtn">➤</button>
         </div>
     </div>
 
-    <div class="delete-modal" id="deleteModal">
-        <div class="delete-content">
-            <h3>⚠️ УДАЛЕНИЕ</h3>
-            <p>Удалить пользователя</p>
-            <div class="delete-username" id="deleteUsername"></div>
-            <p>из системы?</p>
-            <p style="color: #ff8888; font-size: 14px; margin-top: 10px;">Ему придётся заново регистрироваться и начинать с нуля</p>
-            <div class="delete-buttons">
-                <button class="delete-confirm" id="deleteConfirmBtn">ОК</button>
-                <button class="delete-cancel" id="deleteCancelBtn">Отмена</button>
-            </div>
-        </div>
-    </div>
-
     <script>
+        // Конфигурация Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAu_wfaRhTsWNbsyFYmEigopqJck7ynxlU",
             authDomain: "messeger-0wo2h4.firebaseapp.com",
@@ -961,11 +900,11 @@
             appId: "1:1057251395030:web:86f8f718ed938055e29077"
         };
 
+        // Инициализация Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         
-        const ADMIN_USERNAME = "Kamikadzedead";
-        
+        // Конфигурация улучшений
         const UPGRADES = [
             { id: 0, name: "Улучшение 1", bonus: 3, basePrice: 3999 },
             { id: 1, name: "Улучшение 2", bonus: 5, basePrice: 9999 },
@@ -974,14 +913,17 @@
             { id: 4, name: "Улучшение 5", bonus: 12, basePrice: 75999 }
         ];
 
+        // Глобальные переменные
         let currentUser = null;
         let currentUsername = '';
         let userBalance = 0;
         let userUpgrades = [0, 0, 0, 0, 0];
         let clickMultiplier = 1;
         let isUpdating = false;
-        let userToDelete = null;
+        let isUserScrolling = false;
+        let scrollTimeout;
         
+        // DOM элементы
         const nameScreen = document.getElementById('nameScreen');
         const gameScreen = document.getElementById('gameScreen');
         const usernameInput = document.getElementById('usernameInput');
@@ -1009,29 +951,31 @@
         const chatInput = document.getElementById('chatInput');
         const sendMessageBtn = document.getElementById('sendMessageBtn');
         const telegramBlock = document.getElementById('telegramBlock');
-        const deleteModal = document.getElementById('deleteModal');
-        const deleteUsername = document.getElementById('deleteUsername');
-        const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
-        const deleteCancelBtn = document.getElementById('deleteCancelBtn');
 
+        // Открытие Telegram при клике
         telegramBlock.addEventListener('click', function() {
             window.open('https://t.me/W3030q0', '_blank');
         });
 
+        // Ключ для localStorage
         const STORAGE_KEY = 'clicker_username';
 
+        // Проверка имени
         function isValidUsername(name) {
             return name && name.trim().length >= 2 && name.trim().length <= 20;
         }
 
+        // Сохранить имя в localStorage
         function saveUsername(username) {
             localStorage.setItem(STORAGE_KEY, username);
         }
 
+        // Загрузить имя из localStorage
         function loadSavedUsername() {
             return localStorage.getItem(STORAGE_KEY);
         }
 
+        // Функция создания частиц
         function createParticles(x, y) {
             for (let i = 0; i < 12; i++) {
                 const particle = document.createElement('div');
@@ -1060,6 +1004,7 @@
             }
         }
 
+        // Обновление множителя клика
         function updateClickMultiplier() {
             let totalBonus = 1;
             userUpgrades.forEach((count, index) => {
@@ -1075,6 +1020,7 @@
             upgradeBadge.textContent = totalUpgrades;
         }
 
+        // Расчет цены улучшения
         function getUpgradePrice(upgradeId, currentLevel) {
             const upgrade = UPGRADES[upgradeId];
             const totalPurchases = userUpgrades.reduce((a, b) => a + b, 0);
@@ -1082,6 +1028,7 @@
             return price;
         }
 
+        // Загрузка магазина
         function loadShop() {
             let html = '';
             
@@ -1120,6 +1067,7 @@
             });
         }
 
+        // Покупка улучшения
         async function buyUpgrade(upgradeId) {
             if (!currentUsername) return;
             
@@ -1151,6 +1099,7 @@
             }
         }
 
+        // Анимация клика
         function clickAnimation(e) {
             coin.classList.add('click-effect');
             setTimeout(() => {
@@ -1163,12 +1112,14 @@
             createParticles(x, y);
         }
 
+        // Функция скролла чата вниз
         function scrollChatToBottom() {
             if (chatMessages) {
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         }
 
+        // ОТПРАВКА СООБЩЕНИЯ - ИСПРАВЛЕНО
         async function sendMessage() {
             const text = chatInput.value.trim();
             if (!text || !currentUsername) return;
@@ -1181,6 +1132,7 @@
                 });
                 chatInput.value = '';
                 
+                // Скроллим вниз после отправки
                 setTimeout(scrollChatToBottom, 100);
             } catch (error) {
                 console.error('Chat error:', error);
@@ -1194,6 +1146,7 @@
             }
         });
 
+        // ЗАГРУЗКА СООБЩЕНИЙ ЧАТА - ИСПРАВЛЕНО (новые сообщения снизу)
         function loadChatMessages() {
             database.ref('chat')
                 .orderByChild('timestamp')
@@ -1212,6 +1165,7 @@
                         messages.push(child.val());
                     });
 
+                    // Отображаем сообщения в хронологическом порядке (сверху старые, снизу новые)
                     messages.forEach((msg) => {
                         const messageDiv = document.createElement('div');
                         messageDiv.className = `chat-message ${msg.username === currentUsername ? 'own' : ''}`;
@@ -1228,10 +1182,12 @@
                         chatMessages.appendChild(messageDiv);
                     });
 
+                    // ВСЕГДА скроллим вниз к последнему сообщению
                     setTimeout(scrollChatToBottom, 50);
                 });
         }
 
+        // Защита от XSS
         function escapeHTML(text) {
             return text.replace(/[&<>"]/g, function(c) {
                 return {
@@ -1243,64 +1199,7 @@
             });
         }
 
-        async function deleteUser(username) {
-            try {
-                await database.ref('users/' + username).remove();
-                
-                if (currentUsername === username) {
-                    localStorage.removeItem(STORAGE_KEY);
-                    currentUsername = '';
-                    currentUser = null;
-                    userBalance = 0;
-                    userUpgrades = [0,0,0,0,0];
-                    gameScreen.style.display = 'none';
-                    nameScreen.style.display = 'flex';
-                }
-                
-                if (topModal.style.display === 'flex') {
-                    loadTopPlayers();
-                }
-                
-                console.log(`Пользователь ${username} удалён из системы`);
-            } catch (error) {
-                console.error('Delete error:', error);
-                alert('Ошибка при удалении пользователя');
-            }
-        }
-
-        function showDeleteModal(username) {
-            userToDelete = username;
-            deleteUsername.textContent = username;
-            deleteModal.style.display = 'flex';
-        }
-
-        deleteConfirmBtn.addEventListener('click', function() {
-            if (userToDelete) {
-                if (userToDelete === ADMIN_USERNAME) {
-                    alert('❌ Нельзя удалить администратора!');
-                    deleteModal.style.display = 'none';
-                    userToDelete = null;
-                    return;
-                }
-                
-                deleteUser(userToDelete);
-                deleteModal.style.display = 'none';
-                userToDelete = null;
-            }
-        });
-
-        deleteCancelBtn.addEventListener('click', function() {
-            deleteModal.style.display = 'none';
-            userToDelete = null;
-        });
-
-        deleteModal.addEventListener('click', function(e) {
-            if (e.target === deleteModal) {
-                deleteModal.style.display = 'none';
-                userToDelete = null;
-            }
-        });
-
+        // Автоматический вход при загрузке
         window.addEventListener('load', async function() {
             const savedUsername = loadSavedUsername();
             
@@ -1324,7 +1223,7 @@
                             updateClickMultiplier();
                             
                             balanceDisplay.textContent = `Баланс: ${userBalance}`;
-                            usernameDisplay.textContent = `👤 ${currentUsername}${currentUsername === ADMIN_USERNAME ? ' 👑 Админ' : ''}`;
+                            usernameDisplay.textContent = `👤 ${currentUsername}`;
                             
                             nameScreen.style.display = 'none';
                             gameScreen.style.display = 'flex';
@@ -1353,6 +1252,7 @@
             usernameInput.blur();
         });
 
+        // Магазин - открыть
         shopBtn.addEventListener('click', function() {
             if (currentUsername) {
                 loadShop();
@@ -1360,6 +1260,7 @@
             }
         });
 
+        // Магазин - закрыть
         closeShopBtn.addEventListener('click', function() {
             shopModal.style.display = 'none';
         });
@@ -1370,6 +1271,7 @@
             }
         });
 
+        // Чат - открыть (с автоскроллом)
         chatIcon.addEventListener('click', function() {
             if (currentUsername) {
                 chatModal.style.display = 'flex';
@@ -1381,11 +1283,13 @@
             }
         });
 
+        // Чат - закрыть
         closeChatBtn.addEventListener('click', function() {
             chatModal.style.display = 'none';
-            database.ref('chat').off();
+            database.ref('chat').off(); // Отключаем слушатель чата
         });
 
+        // Старт игры
         startBtn.addEventListener('click', async function() {
             const username = usernameInput.value.trim();
             
@@ -1448,7 +1352,7 @@
                 updateClickMultiplier();
                 
                 balanceDisplay.textContent = `Баланс: ${userBalance}`;
-                usernameDisplay.textContent = `👤 ${currentUsername}${currentUsername === ADMIN_USERNAME ? ' 👑 Админ' : ''}`;
+                usernameDisplay.textContent = `👤 ${currentUsername}`;
                 
                 nameScreen.style.display = 'none';
                 gameScreen.style.display = 'flex';
@@ -1474,6 +1378,7 @@
             }
         });
 
+        // Клик по монетке
         coin.addEventListener('click', async function(e) {
             if (!currentUsername) return;
             
@@ -1498,11 +1403,13 @@
             }
         });
 
+        // Открыть топ
         topBtn.addEventListener('click', function() {
             topModal.style.display = 'flex';
             loadTopPlayers();
         });
 
+        // Закрыть модалку топа
         closeModalBtn.addEventListener('click', function() {
             topModal.style.display = 'none';
         });
@@ -1513,6 +1420,7 @@
             }
         });
 
+        // Загрузка топа игроков
         async function loadTopPlayers() {
             topListContainer.innerHTML = '<div class="loader"></div>';
             
@@ -1541,9 +1449,8 @@
 
                 let html = '<div class="top-list">';
                 
-                users.forEach((user, index) => {
+                users.slice(0, 20).forEach((user, index) => {
                     const isYou = user.username === currentUsername;
-                    const isAdmin = user.username === ADMIN_USERNAME;
                     const place = index + 1;
                     let medal = '';
                     
@@ -1552,15 +1459,10 @@
                     else if (place === 3) medal = '🥉';
                     else medal = `${place}.`;
                     
-                    let adminBadge = '';
-                    if (isAdmin) {
-                        adminBadge = '<span class="admin-badge">👑 АДМИН</span>';
-                    }
-                    
                     html += `
-                        <div class="top-item ${isYou ? 'you' : ''} ${isAdmin ? 'admin-item' : ''}" data-username="${user.username}">
+                        <div class="top-item ${isYou ? 'you' : ''}">
                             <span class="place">${medal}</span>
-                            <span class="username-top">${user.username}${adminBadge}</span>
+                            <span class="username-top">${user.username}</span>
                             <span class="clicks-top">${user.clicks}</span>
                         </div>
                     `;
@@ -1577,34 +1479,27 @@
                     `;
                 }
 
-                document.querySelectorAll('.top-item').forEach(item => {
-                    item.addEventListener('click', function(e) {
-                        const username = this.dataset.username;
-                        
-                        if (currentUsername === ADMIN_USERNAME && username !== ADMIN_USERNAME) {
-                            showDeleteModal(username);
-                        }
-                    });
-                });
-
             } catch (error) {
                 console.error('Top load error:', error);
                 topListContainer.innerHTML = '<p style="color: red; text-align: center;">❌ Ошибка загрузки</p>';
             }
         }
 
+        // Enter для ввода имени
         usernameInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 startBtn.click();
             }
         });
 
+        // Блокировка зума на мобильных
         document.addEventListener('touchmove', function(e) {
             if (e.target === coin) {
                 e.preventDefault();
             }
         }, { passive: false });
 
+        // Закрытие чата по клику вне контента
         chatModal.addEventListener('click', function(e) {
             if (e.target === chatModal) {
                 chatModal.style.display = 'none';
@@ -1612,6 +1507,7 @@
             }
         });
 
+        // Очистка слушателей при закрытии
         window.addEventListener('beforeunload', function() {
             if (currentUsername) {
                 database.ref('users/' + currentUsername).off();
