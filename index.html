@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SuperClicker</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            background: black;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        .app {
+            width: 100%;
+            height: 100%;
+            background: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ЭКРАН ВВОДА ИМЕНИ */
+        .name-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            z-index: 30;
+            padding: 20px;
+        }
+
+        .name-screen h2 {
+            color: gold;
+            font-size: 32px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .name-input {
+            width: 100%;
+            max-width: 300px;
+            padding: 18px;
+            border-radius: 50px;
+            border: 2px solid gold;
+            background: #111;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+        }
+
+        .name-input:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .start-btn {
+            background: gold;
+            color: black;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .start-btn:active {
+            transform: scale(0.95);
+            background: #ffd700;
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            transform: none;
+        }
+
+        /* ОСНОВНОЙ ЭКРАН ИГРЫ */
+        .game-screen {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            padding: 16px;
+        }
+
+        /* Верхняя панель */
+        .top-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            width: 100%;
+        }
+
+        .balance {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            background: #111;
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: 1px solid gold;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .top-btn {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
+            border: 1px solid #27ae60;
+        }
+
+        .top-btn:active {
+            transform: scale(0.9);
+            background: #27ae60;
+        }
+
+        /* Панель с магазином */
+        .shop-panel {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 10px 0;
+            width: 100%;
+        }
+
+        .shop-icon {
+            background: #ffd700;
+            width: 50px;
+            height: 50px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            border: 2px solid #fff3bf;
+            position: relative;
+            z-index: 10;
+        }
+
+        .shop-icon:active {
+            transform: scale(0.9);
+            background: #ffed4a;
+        }
+
+        .shop-icon span {
+            font-size: 28px;
+        }
+
+        /* Количество улучшений */
+        .upgrade-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #2ecc71;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+
+        /* Монетка */
+        .coin-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+
+        .coin-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .coin {
+            width: min(280px, 70vw);
+            height: min(280px, 70vw);
+            background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.6);
+            border: 8px solid #fff3bf;
+            cursor: pointer;
+            transition: transform 0.1s cubic-bezier(0.2, 0.9, 0.4, 1);
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 5;
+            margin-bottom: 20px;
+        }
+
+        .coin span {
+            font-size: 80px;
+            font-weight: bold;
+            color: rgba(0,0,0,0.7);
+            text-shadow: 2px 2px 10px rgba(255,255,255,0.5);
+        }
+
+        .coin.click-effect {
+            transform: scale(0.8);
+            box-shadow: 0 0 100px rgba(255, 215, 0, 0.9);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* Telegram блок - реалистичная иконка */
+        .telegram-block {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 12px 25px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 60px;
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(0, 168, 243, 0.5);
+            box-shadow: 0 0 30px rgba(0, 168, 243, 0.3);
+            animation: telegramPulse 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .telegram-block:active {
+            transform: scale(0.95);
+        }
+
+        /* Реалистичная иконка Telegram */
+        .telegram-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(145deg, #30A3E6, #1A93D4);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(0, 168, 243, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        /* Белая окружность внутри */
+        .telegram-icon::before {
+            content: '';
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #40B3E8, #1F9BD8);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Логотип Telegram (белый самолетик) */
+        .telegram-icon::after {
+            content: '✈️';
+            position: absolute;
+            font-size: 24px;
+            color: white;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transform: rotate(45deg);
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+            z-index: 2;
+        }
+
+        /* Альтернативный вариант с SVG-подобным самолетиком */
+        .telegram-logo {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 2px;
+            transform: rotate(45deg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 3;
+        }
+
+        .telegram-logo::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 2px;
+            top: -8px;
+            left: 4px;
+            transform: rotate(45deg);
+        }
+
+        .telegram-logo::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 2px;
+            bottom: -8px;
+            right: 4px;
+            transform: rotate(45deg);
+        }
+
+        .developer-text {
+            color: #4dc3ff;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(0, 168, 243, 0.8);
+            letter-spacing: 1.5px;
+            background: linear-gradient(to right, #A0D8FF, #4DC3FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px rgba(0,168,243,0.5));
+        }
+
+        @keyframes telegramPulse {
+            0%, 100% {
+                box-shadow: 0 0 25px rgba(0, 168, 243, 0.3);
+                border-color: rgba(0, 168, 243, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 45px rgba(0, 168, 243, 0.7);
+                border-color: rgba(0, 168, 243, 0.9);
+            }
+        }
+
+        /* Контейнер для частиц */
+        .particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, #ffd700, #ffaa00);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            animation: particleFly 0.8s ease-out forwards;
+        }
+
+        @keyframes particleFly {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--x), var(--y)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Иконка чата */
+        .chat-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: #2ecc71;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(46, 204, 113, 0.5);
+            border: 3px solid #27ae60;
+            z-index: 40;
+            transition: 0.2s;
+        }
+
+        .chat-icon:active {
+            transform: scale(0.9);
+        }
+
+        .chat-icon span {
+            font-size: 35px;
+        }
+
+        /* МОДАЛКА ТОПА */
+        .modal, .shop-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content, .shop-content {
+            background: #0a0a0a;
+            width: 90%;
+            max-width: 380px;
+            border-radius: 30px;
+            padding: 24px 16px;
+            border: 2px solid gold;
+            color: white;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header, .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid gold;
+        }
+
+        .modal-header h3, .shop-header h3 {
+            color: gold;
+            font-size: 24px;
+        }
+
+        .close-btn, .shop-close-btn {
+            background: red;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Стили для магазина */
+        .upgrade-item {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 6px solid gold;
+            transition: 0.2s;
+        }
+
+        .upgrade-item.can-afford {
+            border-left: 6px solid #2ecc71;
+            background: #1a331a;
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .upgrade-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: gold;
+        }
+
+        .upgrade-level {
+            background: #333;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #ffd700;
+        }
+
+        .upgrade-desc {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+
+        .upgrade-bonus {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        .upgrade-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .buy-btn {
+            background: gold;
+            color: black;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+
+        .buy-btn:active {
+            transform: scale(0.95);
+        }
+
+        .buy-btn:disabled {
+            opacity: 0.5;
+            transform: none;
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        /* МОДАЛКА ЧАТА */
+        .chat-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.98);
+            display: none;
+            flex-direction: column;
+            z-index: 200;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #0a0a0a;
+            border-bottom: 2px solid gold;
+        }
+
+        .chat-header h3 {
+            color: gold;
+            font-size: 24px;
+        }
+
+        .chat-close {
+            background: red;
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-message {
+            background: #1a1a1a;
+            padding: 12px 16px;
+            border-radius: 20px;
+            max-width: 85%;
+            word-break: break-word;
+            border-left: 5px solid gold;
+        }
+
+        .chat-message.own {
+            background: #1a331a;
+            border-left: 5px solid #2ecc71;
+            align-self: flex-end;
+        }
+
+        .message-author {
+            color: gold;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .message-text {
+            color: white;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        .message-time {
+            color: #888;
+            font-size: 11px;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .chat-input-container {
+            display: flex;
+            padding: 16px;
+            background: #0a0a0a;
+            border-top: 1px solid gold;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 16px;
+            border-radius: 30px;
+            border: 2px solid gold;
+            background: #111;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .chat-send-btn {
+            background: gold;
+            color: black;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .chat-send-btn:active {
+            transform: scale(0.9);
+        }
+
+        .top-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #1a1a1a;
+            border-radius: 20px;
+            border-left: 6px solid gold;
+        }
+
+        .top-item.you {
+            border-left: 6px solid #2ecc71;
+            background: #1a331a;
+        }
+
+        .place {
+            font-weight: bold;
+            color: gold;
+            min-width: 40px;
+        }
+
+        .username-top {
+            flex: 1;
+            font-weight: 500;
+            margin-left: 10px;
+            word-break: break-word;
+        }
+
+        .clicks-top {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        .user-info {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+            text-align: center;
+            color: gold;
+        }
+
+        .loader {
+            border: 4px solid #333;
+            border-top: 4px solid gold;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            margin-top: 10px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #888;
+            padding: 30px 0;
+            font-size: 16px;
+        }
+
+        .username-display {
+            color: #888;
+            text-align: center;
+            padding: 10px;
+            font-size: 16px;
+            border-top: 1px solid #333;
+            margin-top: auto;
+        }
+
+        .click-stats {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+            color: gold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- Экран ввода имени -->
+        <div class="name-screen" id="nameScreen">
+            <h2>💰 КЛИКЕР</h2>
+            <input type="text" class="name-input" id="usernameInput" placeholder="Введите ваше имя" maxlength="20" autocomplete="off">
+            <button class="start-btn" id="startBtn">Начать кликать!</button>
+            <div id="nameError" class="error-message"></div>
+        </div>
+
+        <!-- Основной экран игры -->
+        <div class="game-screen" id="gameScreen">
+            <div class="top-panel">
+                <div class="balance" id="balanceDisplay">Баланс: 0</div>
+                <button class="top-btn" id="topBtn">🏆 Топ</button>
+            </div>
+            
+            <div class="shop-panel">
+                <div class="shop-icon" id="shopBtn">
+                    <span>🛒</span>
+                    <span class="upgrade-badge" id="upgradeBadge">0</span>
+                </div>
+            </div>
+            
+            <div class="coin-container">
+                <div class="coin-wrapper">
+                    <div class="coin" id="coin">
+                        <span>💰</span>
+                    </div>
+                    
+                    <!-- Telegram блок с реалистичной иконкой -->
+                    <div class="telegram-block" id="telegramBlock">
+                        <div class="telegram-icon"></div>
+                        <span class="developer-text">Разработчик: @W3030q0</span>
+                    </div>
+                </div>
+                <div class="particles-container" id="particlesContainer"></div>
+            </div>
+            
+            <div class="username-display">
+                <div id="usernameDisplay"></div>
+                <div class="click-stats" id="clickStatsDisplay"></div>
+            </div>
+        </div>
+
+        <!-- Иконка чата -->
+        <div class="chat-icon" id="chatIcon">
+            <span>💬</span>
+        </div>
+    </div>
+
+    <!-- Модалка Топа -->
+    <div class="modal" id="topModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🏆 Топ кликеров</h3>
+                <button class="close-btn" id="closeModalBtn">×</button>
+            </div>
+            <div id="topListContainer" style="min-height: 200px;">
+                <div class="loader"></div>
+            </div>
+            <div id="userRankInfo" class="user-info"></div>
+        </div>
+    </div>
+
+    <!-- Модалка Магазина -->
+    <div class="shop-modal" id="shopModal">
+        <div class="shop-content">
+            <div class="shop-header">
+                <h3>🛒 Магазин улучшений</h3>
+                <button class="shop-close-btn" id="closeShopBtn">×</button>
+            </div>
+            <div id="shopContainer">
+                <!-- Улучшения будут загружены через JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка Чата -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-header">
+            <h3>💬 Общий чат</h3>
+            <button class="chat-close" id="closeChatBtn">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Сообщения будут здесь -->
+        </div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Введите сообщение..." maxlength="200">
+            <button class="chat-send-btn" id="sendMessageBtn">➤</button>
+        </div>
+    </div>
+
+    <script>
+        // Конфигурация Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAu_wfaRhTsWNbsyFYmEigopqJck7ynxlU",
+            authDomain: "messeger-0wo2h4.firebaseapp.com",
+            databaseURL: "https://messeger-0wo2h4-default-rtdb.firebaseio.com",
+            projectId: "messeger-0wo2h4",
+            storageBucket: "messeger-0wo2h4.firebasestorage.app",
+            messagingSenderId: "1057251395030",
+            appId: "1:1057251395030:web:86f8f718ed938055e29077"
+        };
+
+        // Инициализация Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Конфигурация улучшений
+        const UPGRADES = [
+            { id: 0, name: "Улучшение 1", bonus: 3, basePrice: 3999 },
+            { id: 1, name: "Улучшение 2", bonus: 5, basePrice: 9999 },
+            { id: 2, name: "Улучшение 3", bonus: 7, basePrice: 18999 },
+            { id: 3, name: "Улучшение 4", bonus: 9, basePrice: 39999 },
+            { id: 4, name: "Улучшение 5", bonus: 12, basePrice: 75999 }
+        ];
+
+        // Глобальные переменные
+        let currentUser = null;
+        let currentUsername = '';
+        let userBalance = 0;
+        let userUpgrades = [0, 0, 0, 0, 0]; // Количество каждого улучшения
+        let clickMultiplier = 1; // Базовый множитель
+        let isUpdating = false;
+        
+        // DOM элементы
+        const nameScreen = document.getElementById('nameScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const usernameInput = document.getElementById('usernameInput');
+        const startBtn = document.getElementById('startBtn');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const coin = document.getElementById('coin');
+        const topBtn = document.getElementById('topBtn');
+        const topModal = document.getElementById('topModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const topListContainer = document.getElementById('topListContainer');
+        const userRankInfo = document.getElementById('userRankInfo');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        const clickStatsDisplay = document.getElementById('clickStatsDisplay');
+        const nameError = document.getElementById('nameError');
+        const shopBtn = document.getElementById('shopBtn');
+        const shopModal = document.getElementById('shopModal');
+        const closeShopBtn = document.getElementById('closeShopBtn');
+        const shopContainer = document.getElementById('shopContainer');
+        const upgradeBadge = document.getElementById('upgradeBadge');
+        const particlesContainer = document.getElementById('particlesContainer');
+        const chatIcon = document.getElementById('chatIcon');
+        const chatModal = document.getElementById('chatModal');
+        const closeChatBtn = document.getElementById('closeChatBtn');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const telegramBlock = document.getElementById('telegramBlock');
+
+        // Открытие Telegram при клике
+        telegramBlock.addEventListener('click', function() {
+            window.open('https://t.me/W3030q0', '_blank');
+        });
+
+        // Ключ для localStorage
+        const STORAGE_KEY = 'clicker_username';
+
+        // Проверка имени
+        function isValidUsername(name) {
+            return name && name.trim().length >= 2 && name.trim().length <= 20;
+        }
+
+        // Сохранить имя в localStorage
+        function saveUsername(username) {
+            localStorage.setItem(STORAGE_KEY, username);
+        }
+
+        // Загрузить имя из localStorage
+        function loadSavedUsername() {
+            return localStorage.getItem(STORAGE_KEY);
+        }
+
+        // Функция создания частиц
+        function createParticles(x, y) {
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 8 + 4;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                
+                const angle = (i * 30 + Math.random() * 30) * (Math.PI / 180);
+                const distance = Math.random() * 100 + 50;
+                const xMove = Math.cos(angle) * distance;
+                const yMove = Math.sin(angle) * distance - 20;
+                
+                particle.style.setProperty('--x', `${xMove}px`);
+                particle.style.setProperty('--y', `${yMove}px`);
+                
+                particlesContainer.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 800);
+            }
+        }
+
+        // Обновление множителя клика
+        function updateClickMultiplier() {
+            let totalBonus = 1; // Базовый 1 за клик
+            userUpgrades.forEach((count, index) => {
+                totalBonus += count * UPGRADES[index].bonus;
+            });
+            clickMultiplier = totalBonus;
+            
+            if (clickStatsDisplay) {
+                clickStatsDisplay.innerHTML = `⚡ +${clickMultiplier} за клик`;
+            }
+            
+            // Обновляем бейдж
+            const totalUpgrades = userUpgrades.reduce((a, b) => a + b, 0);
+            upgradeBadge.textContent = totalUpgrades;
+        }
+
+        // Расчет цены улучшения
+        function getUpgradePrice(upgradeId, currentLevel) {
+            const upgrade = UPGRADES[upgradeId];
+            // Увеличиваем цену на 35% за каждую покупку любого улучшения
+            const totalPurchases = userUpgrades.reduce((a, b) => a + b, 0);
+            const price = Math.floor(upgrade.basePrice * Math.pow(1.35, totalPurchases));
+            return price;
+        }
+
+        // Загрузка магазина
+        function loadShop() {
+            let html = '';
+            
+            UPGRADES.forEach((upgrade, index) => {
+                const currentLevel = userUpgrades[index] || 0;
+                const price = getUpgradePrice(index, currentLevel);
+                const canAfford = userBalance >= price;
+                
+                html += `
+                    <div class="upgrade-item ${canAfford ? 'can-afford' : ''}">
+                        <div class="upgrade-header">
+                            <span class="upgrade-name">${upgrade.name}</span>
+                            <span class="upgrade-level">Ур. ${currentLevel}</span>
+                        </div>
+                        <div class="upgrade-desc">
+                            <span>💰 +${upgrade.bonus} за клик</span>
+                            <span class="upgrade-bonus">⚡ ${currentLevel * upgrade.bonus}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                            <span class="upgrade-price">💎 ${price.toLocaleString()}</span>
+                            <button class="buy-btn" data-upgrade="${index}" ${!canAfford ? 'disabled' : ''}>
+                                Купить
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            shopContainer.innerHTML = html;
+            
+            // Добавляем обработчики покупки
+            document.querySelectorAll('.buy-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const upgradeId = parseInt(this.dataset.upgrade);
+                    await buyUpgrade(upgradeId);
+                });
+            });
+        }
+
+        // Покупка улучшения
+        async function buyUpgrade(upgradeId) {
+            if (!currentUsername) return;
+            
+            const price = getUpgradePrice(upgradeId, userUpgrades[upgradeId]);
+            
+            if (userBalance < price) {
+                return;
+            }
+            
+            isUpdating = true;
+            
+            try {
+                // Списываем деньги
+                userBalance -= price;
+                
+                // Увеличиваем уровень улучшения
+                userUpgrades[upgradeId] = (userUpgrades[upgradeId] || 0) + 1;
+                
+                // Обновляем множитель
+                updateClickMultiplier();
+                
+                // Сохраняем в Firebase
+                await database.ref('users/' + currentUsername).update({
+                    clicks: userBalance,
+                    upgrades: userUpgrades
+                });
+                
+                // Обновляем UI
+                balanceDisplay.textContent = `Баланс: ${userBalance}`;
+                
+                // Перезагружаем магазин
+                loadShop();
+                
+            } catch (error) {
+                console.error('Buy error:', error);
+                userBalance += price;
+                userUpgrades[upgradeId]--;
+            } finally {
+                isUpdating = false;
+            }
+        }
+
+        // Анимация клика
+        function clickAnimation(e) {
+            // Анимация монетки
+            coin.classList.add('click-effect');
+            setTimeout(() => {
+                coin.classList.remove('click-effect');
+            }, 150);
+            
+            // Создаем частицы
+            const rect = coin.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            createParticles(x, y);
+        }
+
+        // Автоматический вход при загрузке
+        window.addEventListener('load', async function() {
+            const savedUsername = loadSavedUsername();
+            
+            if (savedUsername && isValidUsername(savedUsername)) {
+                nameScreen.style.display = 'flex';
+                startBtn.textContent = 'Автовход...';
+                startBtn.disabled = true;
+                
+                try {
+                    const snapshot = await database.ref('users/' + savedUsername).once('value');
+                    
+                    if (snapshot.exists()) {
+                        const userData = snapshot.val();
+                        
+                        if (userData && userData.registered === true) {
+                            currentUsername = savedUsername;
+                            currentUser = savedUsername;
+                            userBalance = userData.clicks || 0;
+                            userUpgrades = userData.upgrades || [0, 0, 0, 0, 0];
+                            
+                            updateClickMultiplier();
+                            
+                            balanceDisplay.textContent = `Баланс: ${userBalance}`;
+                            usernameDisplay.textContent = `👤 ${currentUsername}`;
+                            
+                            nameScreen.style.display = 'none';
+                            gameScreen.style.display = 'flex';
+                            
+                            database.ref('users/' + currentUsername).on('value', (snapshot) => {
+                                if (snapshot.exists() && !isUpdating) {
+                                    const data = snapshot.val();
+                                    if (data.registered === true) {
+                                        userBalance = data.clicks || 0;
+                                        userUpgrades = data.upgrades || [0, 0, 0, 0, 0];
+                                        balanceDisplay.textContent = `Баланс: ${userBalance}`;
+                                        updateClickMultiplier();
+                                    }
+                                }
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Auto login error:', error);
+                } finally {
+                    startBtn.textContent = 'Начать кликать!';
+                    startBtn.disabled = false;
+                }
+            }
+            
+            usernameInput.blur();
+        });
+
+        // Магазин - открыть
+        shopBtn.addEventListener('click', function() {
+            if (currentUsername) {
+                loadShop();
+                shopModal.style.display = 'flex';
+            }
+        });
+
+        // Магазин - закрыть
+        closeShopBtn.addEventListener('click', function() {
+            shopModal.style.display = 'none';
+        });
+
+        shopModal.addEventListener('click', function(e) {
+            if (e.target === shopModal) {
+                shopModal.style.display = 'none';
+            }
+        });
+
+        // Чат - открыть
+        chatIcon.addEventListener('click', function() {
+            if (currentUsername) {
+                chatModal.style.display = 'flex';
+                loadChatMessages();
+                setTimeout(() => {
+                    chatInput.focus();
+                }, 300);
+            }
+        });
+
+        // Чат - закрыть
+        closeChatBtn.addEventListener('click', function() {
+            chatModal.style.display = 'none';
+        });
+
+        // Отправка сообщения
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text || !currentUsername) return;
+
+            try {
+                await database.ref('chat').push({
+                    username: currentUsername,
+                    text: text,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                chatInput.value = '';
+            } catch (error) {
+                console.error('Chat error:', error);
+            }
+        }
+
+        sendMessageBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Загрузка сообщений чата
+        function loadChatMessages() {
+            database.ref('chat').orderByChild('timestamp').limitToLast(50).on('value', (snapshot) => {
+                chatMessages.innerHTML = '';
+                
+                if (!snapshot.exists()) {
+                    chatMessages.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">💭 Пока нет сообщений</div>';
+                    return;
+                }
+
+                const messages = [];
+                snapshot.forEach((child) => {
+                    messages.push(child.val());
+                });
+
+                messages.reverse().forEach((msg) => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `chat-message ${msg.username === currentUsername ? 'own' : ''}`;
+                    
+                    const time = new Date(msg.timestamp || Date.now());
+                    const timeStr = `${time.getHours().toString().padStart(2,'0')}:${time.getMinutes().toString().padStart(2,'0')}`;
+                    
+                    messageDiv.innerHTML = `
+                        <div class="message-author">${msg.username}</div>
+                        <div class="message-text">${escapeHTML(msg.text)}</div>
+                        <div class="message-time">${timeStr}</div>
+                    `;
+                    
+                    chatMessages.appendChild(messageDiv);
+                });
+
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+        }
+
+        // Защита от XSS
+        function escapeHTML(text) {
+            return text.replace(/[&<>"]/g, function(c) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;'
+                }[c];
+            });
+        }
+
+        // Старт игры
+        startBtn.addEventListener('click', async function() {
+            const username = usernameInput.value.trim();
+            
+            if (!isValidUsername(username)) {
+                nameError.textContent = 'Имя должно быть от 2 до 20 символов';
+                return;
+            }
+
+            const invalidChars = /[.$#[\]/]/
+            if (invalidChars.test(username)) {
+                nameError.textContent = 'Имя не должно содержать символы . $ # [ ] /';
+                return;
+            }
+
+            startBtn.textContent = 'Проверка...';
+            startBtn.disabled = true;
+            nameError.textContent = '';
+
+            try {
+                const snapshot = await database.ref('users/' + username).once('value');
+                
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    
+                    if (userData && userData.registered === true) {
+                        nameError.textContent = '❌ Это имя уже занято! Выберите другое';
+                        startBtn.textContent = 'Начать кликать!';
+                        startBtn.disabled = false;
+                        return;
+                    }
+                    
+                    userBalance = 0;
+                    userUpgrades = [0, 0, 0, 0, 0];
+                    
+                    await database.ref('users/' + username).set({
+                        username: username,
+                        clicks: 0,
+                        upgrades: userUpgrades,
+                        registered: true,
+                        registeredAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                } else {
+                    userBalance = 0;
+                    userUpgrades = [0, 0, 0, 0, 0];
+                    
+                    await database.ref('users/' + username).set({
+                        username: username,
+                        clicks: 0,
+                        upgrades: userUpgrades,
+                        registered: true,
+                        registeredAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                }
+                
+                saveUsername(username);
+                
+                currentUsername = username;
+                currentUser = username;
+                
+                updateClickMultiplier();
+                
+                balanceDisplay.textContent = `Баланс: ${userBalance}`;
+                usernameDisplay.textContent = `👤 ${currentUsername}`;
+                
+                nameScreen.style.display = 'none';
+                gameScreen.style.display = 'flex';
+                
+                database.ref('users/' + username).on('value', (snapshot) => {
+                    if (snapshot.exists() && !isUpdating) {
+                        const data = snapshot.val();
+                        if (data.registered === true) {
+                            userBalance = data.clicks || 0;
+                            userUpgrades = data.upgrades || [0, 0, 0, 0, 0];
+                            balanceDisplay.textContent = `Баланс: ${userBalance}`;
+                            updateClickMultiplier();
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Firebase error:', error);
+                nameError.textContent = 'Ошибка подключения к серверу';
+            } finally {
+                startBtn.textContent = 'Начать кликать!';
+                startBtn.disabled = false;
+            }
+        });
+
+        // Клик по монетке
+        coin.addEventListener('click', async function(e) {
+            if (!currentUsername) return;
+            
+            // Анимация
+            clickAnimation(e);
+            
+            isUpdating = true;
+            userBalance += clickMultiplier;
+            balanceDisplay.textContent = `Баланс: ${userBalance}`;
+            
+            try {
+                await database.ref('users/' + currentUsername).update({
+                    clicks: userBalance,
+                    upgrades: userUpgrades,
+                    registered: true
+                });
+            } catch (error) {
+                console.error('Update error:', error);
+                userBalance -= clickMultiplier;
+                balanceDisplay.textContent = `Баланс: ${userBalance}`;
+            } finally {
+                isUpdating = false;
+            }
+        });
+
+        // Открыть топ
+        topBtn.addEventListener('click', function() {
+            topModal.style.display = 'flex';
+            loadTopPlayers();
+        });
+
+        // Закрыть модалку топа
+        closeModalBtn.addEventListener('click', function() {
+            topModal.style.display = 'none';
+        });
+
+        topModal.addEventListener('click', function(e) {
+            if (e.target === topModal) {
+                topModal.style.display = 'none';
+            }
+        });
+
+        // Загрузка топа игроков
+        async function loadTopPlayers() {
+            topListContainer.innerHTML = '<div class="loader"></div>';
+            
+            try {
+                const snapshot = await database.ref('users').once('value');
+                const users = [];
+                
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    
+                    if (user && user.registered === true && user.username) {
+                        users.push({
+                            username: user.username,
+                            clicks: user.clicks || 0
+                        });
+                    }
+                });
+
+                if (users.length === 0) {
+                    topListContainer.innerHTML = '<div class="empty-message">🚫 Пока нет игроков</div>';
+                    userRankInfo.innerHTML = '';
+                    return;
+                }
+
+                users.sort((a, b) => b.clicks - a.clicks);
+
+                let html = '<div class="top-list">';
+                
+                users.slice(0, 20).forEach((user, index) => {
+                    const isYou = user.username === currentUsername;
+                    const place = index + 1;
+                    let medal = '';
+                    
+                    if (place === 1) medal = '🥇';
+                    else if (place === 2) medal = '🥈';
+                    else if (place === 3) medal = '🥉';
+                    else medal = `${place}.`;
+                    
+                    html += `
+                        <div class="top-item ${isYou ? 'you' : ''}">
+                            <span class="place">${medal}</span>
+                            <span class="username-top">${user.username}</span>
+                            <span class="clicks-top">${user.clicks}</span>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                topListContainer.innerHTML = html;
+
+                const userIndex = users.findIndex(u => u.username === currentUsername);
+                if (userIndex !== -1) {
+                    userRankInfo.innerHTML = `
+                        📊 Ваше место: ${userIndex + 1} из ${users.length}<br>
+                        💰 Кликов: ${users[userIndex].clicks}
+                    `;
+                }
+
+            } catch (error) {
+                console.error('Top load error:', error);
+                topListContainer.innerHTML = '<p style="color: red; text-align: center;">❌ Ошибка загрузки</p>';
+            }
+        }
+
+        // Enter для ввода имени
+        usernameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startBtn.click();
+            }
+        });
+
+        // Блокировка зума на мобильных
+        document.addEventListener('touchmove', function(e) {
+            if (e.target === coin) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Закрытие чата по клику вне контента
+        chatModal.addEventListener('click', function(e) {
+            if (e.target === chatModal) {
+                chatModal.style.display = 'none';
+            }
+        });
+
+        // Очистка слушателей при закрытии
+        window.addEventListener('beforeunload', function() {
+            if (currentUsername) {
+                database.ref('users/' + currentUsername).off();
+            }
+            database.ref('chat').off();
+        });
+    </script>
+</body>
+</html>
