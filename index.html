@@ -1068,7 +1068,7 @@
             clickMultiplier = totalBonus;
             
             if (clickStatsDisplay) {
-                clickStatsDisplay.innerHTML = `⚡ +${clickMultiplier} за клик`;
+                clickStatsDisplay.innerHTML = `⚡ +${clickMultiplier} за клик (в топ +1)`;
             }
             
             const totalUpgrades = userUpgrades.reduce((a, b) => a + b, 0);
@@ -1134,10 +1134,9 @@
                 userUpgrades[upgradeId] = (userUpgrades[upgradeId] || 0) + 1;
                 updateClickMultiplier();
                 
-                // Сохраняем и баланс, и улучшения - клики НЕ ОБНУЛЯЮТСЯ
                 await database.ref('users/' + currentUsername).update({
-                    clicks: userBalance,      // Баланс сохраняется
-                    upgrades: userUpgrades,   // Улучшения сохраняются
+                    clicks: userBalance,
+                    upgrades: userUpgrades,
                     registered: true
                 });
                 
@@ -1482,18 +1481,18 @@
             clickAnimation(e);
             
             isUpdating = true;
-            userBalance += clickMultiplier;
+            userBalance += 1; // ТОЛЬКО +1 В ТОП
             balanceDisplay.textContent = `Баланс: ${userBalance}`;
             
             try {
                 await database.ref('users/' + currentUsername).update({
-                    clicks: userBalance,
-                    upgrades: userUpgrades,
+                    clicks: userBalance,      // В топ идёт +1 за клик
+                    upgrades: userUpgrades,   // Улучшения сохраняются отдельно
                     registered: true
                 });
             } catch (error) {
                 console.error('Update error:', error);
-                userBalance -= clickMultiplier;
+                userBalance -= 1;
                 balanceDisplay.textContent = `Баланс: ${userBalance}`;
             } finally {
                 isUpdating = false;
